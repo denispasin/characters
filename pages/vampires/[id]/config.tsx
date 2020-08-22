@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useRouter, Router } from 'next/router';
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { GetStaticProps } from 'next';
 import useSWR from 'swr';
@@ -15,14 +15,20 @@ import { VampireType } from '../../../types/VampireType';
 import { fetchVampireFromDB } from '../../api/vampires';
 import SystemContext from '../../../contexts/SystemContext';
 import { Title } from '../../../styles/Titles';
-import { EmptyLine, BlackLine } from '../../../styles/Lines';
+import { EmptyLine } from '../../../styles/Lines';
 import SectionTitle from '../../../components/SectionTitle';
 import { Glyph } from '../../../components/Glyph';
 import { fetcher } from '../../../helpers/fetcher';
-import IdContext from '../../../contexts/IdContext';
 import { TextFallback } from '../../new';
 import MeContext from '../../../contexts/MeContext';
 import ActionsFooter from '../../../components/ActionsFooter';
+import AutoCompleteInput from '../../../components/AutoCompleteInput';
+
+export type UserType = {
+  nickname: string;
+  name: string;
+  sub: string;
+};
 
 const OuterContainer = styled.div`
   display: flex;
@@ -51,6 +57,9 @@ const ButtonList = styled.ul`
 `;
 const DangerousSection = styled.section`
   width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 const ButtonLi = styled.li`
   position: relative;
@@ -198,6 +207,16 @@ const Config = ({ id, name }: { id: string; name: string }) => {
     toggleSection(sectionName)();
   };
 
+  const [editors, setEditors] = useState<Array<UserType>>([
+    { nickname: 'zaratan', name: 'Denis Pasin', sub: 'github|12345' },
+  ]);
+
+  const [users, setUsers] = useState<Array<UserType>>([
+    { nickname: 'zaratan', name: 'Denis Pasin', sub: 'github|12345' },
+    { nickname: 'zaratan2', name: 'Denis Pasin2', sub: 'github|12343' },
+    { nickname: 'zaratan3', name: 'Denis Pasin3', sub: 'github|12344' },
+  ]);
+
   return (
     <>
       <Title>Options pour {name}</Title>
@@ -253,6 +272,21 @@ const Config = ({ id, name }: { id: string; name: string }) => {
           Attention, les actions ci-dessous sont dangereuses et définitives
         </h2>
         <EmptyLine />
+        <div>
+          <span>Éditeurs : </span>
+          <ul>
+            {editors.map((user) => (
+              <li key={user.sub}>{user.name}</li>
+            ))}
+            <li>
+              <AutoCompleteInput
+                autocompleteOptions={users.map((e) => e.name)}
+                onSubmit={(value) => console.log(value)}
+                placeholder="Ajouter un éditeur"
+              />
+            </li>
+          </ul>
+        </div>
         <ButtonList>
           <ButtonLi>
             <RedButton onClick={destroyFunction}>
@@ -268,8 +302,6 @@ const Config = ({ id, name }: { id: string; name: string }) => {
     </>
   );
 };
-
-const ClearFix = styled.div``;
 
 export async function getStaticPaths() {
   const vampires = await fetchVampireFromDB();
